@@ -1,86 +1,81 @@
 package serverlet.student;
 
 import com.alibaba.fastjson.JSON;
+import com.service.UserService;
 import model.student;
 import model.pageBean;
-import serverlet.BaseServlet;
-import service.Delete;
-import service.Insert;
-import service.Select;
-import service.Update;
-
-import javax.servlet.*;
-import javax.servlet.http.*;
-import javax.servlet.annotation.*;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.util.ArrayList;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
-@WebServlet("/student/*")
-public class StudentServlet extends BaseServlet {
-    public void selectAll(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
-        int page = Integer.parseInt(req.getParameter("page"));
-        int pagesize = Integer.parseInt(req.getParameter("pagesize"));
-        pageBean bean = new pageBean();
-        bean.setPages(service.Select.selectAll((page-1)*pagesize,pagesize));
-        bean.setCount(service.Select.selectCount());
-        String s = JSON.toJSONString(bean);
-        resp.setContentType("text/json;charset=utf-8");
-        resp.getWriter().write(s);
+@Controller
+@ResponseBody
+@RequestMapping("/students")
+public class StudentServlet{
+    @Autowired
+    private UserService service;
+
+    @GetMapping("/selectCount")
+    public int selectCount(){
+        int res = service.selectCount();
+        return res;
     }
-    public void selectBy(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
-        int page = Integer.parseInt(req.getParameter("page"));
-        int pagesize = Integer.parseInt(req.getParameter("pagesize"));
-        String s1 = req.getReader().readLine();
-        student student = JSON.parseObject(s1, student.class);
-        pageBean bean = new pageBean();
-        bean.setPages(service.Select.selectBy(student,(page-1)*pagesize,pagesize,true));
-        bean.setCount(service.Select.selectBy(student,0,0,false).size());
-        String s = JSON.toJSONString(bean);
-        resp.setContentType("text/json;charset=utf-8");
-        resp.getWriter().write(s);
+
+    @GetMapping("/{i}/{n}")
+    public pageBean<student> selectAll(@PathVariable int i,@PathVariable int n){
+        pageBean<student>  res = new pageBean<student> ();
+        res.setPages(service.selectAll((i-1)*n,n));
+        res.setCount(service.selectCount());
+        return res;
     }
-    public void selectByexist(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
-        BufferedReader reader = req.getReader();
-        String s1 = reader.readLine();
-        student stu = JSON.parseObject(s1, student.class);
-        student studentList = Select.selectByid(stu.getId());
-        if(studentList == null){
-            resp.getWriter().write("no exist");
-        }else{
-            resp.getWriter().write("exist");
-        }
+
+    @PostMapping("/{i}/{n}/{f}")
+    public pageBean<student> selectBy(@RequestBody student stu,@PathVariable int i,@PathVariable int n,@PathVariable boolean f){
+        pageBean<student> res = new pageBean<student>();
+        List<student> students = service.selectBy(stu,(i-1)*n,n,false);
+        res.setPages(service.selectBy(stu,(i-1)*n,n,f));
+        res.setCount(students.size());
+        return res;
     }
-    public void insert(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
-        BufferedReader reader = req.getReader();
-        String read = reader.readLine();
-        student student = JSON.parseObject(read, student.class);
-        int in = Insert.in(student);
-        if(in == 0) {
-            resp.getWriter().write("wrong");
-        }else{
-            resp.getWriter().write("ok");
-        }
+
+    @GetMapping("/{id}")
+    public String selectByid(@PathVariable  int id){
+        String resp = "1";
+        student res = service.selectByid(id);
+        if(res != null)
+            resp = "exist";
+        return resp;
     }
-    public void update(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
-        String s = req.getReader().readLine();
-        student student = JSON.parseObject(s, student.class);
-        int res = Update.up(student);
-        if(res == 0){
-            resp.getWriter().write("wrong");
-        }else{
-            resp.getWriter().write("ok");
-        }
+
+    @PutMapping
+    public String in(@RequestBody student stu){
+        int res = service.in(stu);
+        String resp = "1";
+        if(res != 0)
+            resp = "ok";
+        else
+            resp = "wrong";
+        return resp;
     }
-    public void delete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException{
-        String s = req.getReader().readLine();
-        int[] student = JSON.parseObject(s, int[].class);
-        int res = Delete.de(student);
-        if(res == 0){
-            resp.getWriter().write("wrong");
-        }else{
-            resp.getWriter().write("ok");
-        }
+
+    @PostMapping
+    public String up(@RequestBody student stu){
+        int res = service.up(stu);
+        String resp = "error";
+        if(res != 0)
+            resp = "ok";
+        return resp;
+    }
+
+    @DeleteMapping
+    public String delete(@RequestBody int[] stu){
+        int res = service.de(stu);
+        String resp = "error";
+        if(res != 0)
+            resp = "ok";
+        else
+            resp = "no";
+        return resp;
     }
 }

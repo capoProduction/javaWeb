@@ -1,9 +1,0 @@
-mapper\update.class
-model\student.class
-mapper\insert.class
-service\Select.class
-tools\sqlsessionFactory.class
-serverlet\selectAll.class
-mapper\delete.class
-mapper\select.class
-tools\checkImage.class

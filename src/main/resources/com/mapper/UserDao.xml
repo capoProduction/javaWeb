@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mapper.UserDao">
+    <select id="selectBy" resultType="model.student">
+        select * from student
+        <where>
+            <if test="stu.id != null and stu.id != ''">id = #{stu.id}</if>
+            <if test="stu.name != null and stu.name != ''">and name = #{stu.name}</if>
+            <if test="stu.grade != null and stu.grade != ''">and grade = #{stu.grade}</if>
+            <if test="stu.institute != null and stu.institute != ''">and institute = #{stu.institute}</if>
+            <if test="stu.specialty != null and stu.specialty != ''">and specialty = #{stu.specialty}</if>
+            <if test="stu.classes != null and stu.classes != ''">and classes = #{stu.classes}</if>
+        </where>
+        <if test="f==true">limit #{i},#{n}</if>
+    </select>
+    <delete id="de">
+        delete from student where id in
+        <foreach collection="stu" item="student" open="(" close=")" separator=",">
+            #{student}
+        </foreach>
+    </delete>
+</mapper>
